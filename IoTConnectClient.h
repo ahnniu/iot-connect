@@ -6,11 +6,6 @@
 #include "MQTTClientMbedOs.h"
 
 typedef enum {
-    IOT_CONNECT_AUTH_SYMMETRIC_KEY = 0,
-    IOT_CONNECT_AUTH_CLIENT_SIDE_CERT = 1
-}IoTConnectAuthType;
-
-typedef enum {
     IOT_CONNECT_ERROR_OK                     =  0,        /*!< no error */
 
     IOT_CONNECT_ERROR_INVAL_ROOT_CA          = -1001,
@@ -49,7 +44,7 @@ private:
     MQTTClient* mqtt_client;
 
 public:
-    IoTConnectClient(NetworkInterface *_network, IoTConnectDevice *_device, IoTConnectAuthType _auth_type = IOT_CONNECT_AUTH_SYMMETRIC_KEY);
+    IoTConnectClient(NetworkInterface *_network, IoTConnectDevice *_device);
     ~IoTConnectClient();
 
     int connect();

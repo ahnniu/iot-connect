@@ -6,16 +6,17 @@
 
 #define TRACE_GROUP  "IoTConnectClient"
 
-IoTConnectClient::IoTConnectClient(NetworkInterface *_network, IoTConnectDevice *_device, IoTConnectAuthType _auth_type) :
+IoTConnectClient::IoTConnectClient(NetworkInterface *_network, IoTConnectDevice *_device) :
     network(_network),
     device(_device),
-    auth_type(_auth_type),
+    auth_type(IOT_CONNECT_AUTH_SYMMETRIC_KEY),
     entry(NULL),
     socket(new TLSSocket),
     mqtt_client(NULL)
 {
     if (_device) {
         entry = _device->get_entry();
+        auth_type = _device->get_auth_type();
     }
 
 }

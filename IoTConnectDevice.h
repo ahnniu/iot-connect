@@ -4,6 +4,10 @@
 #include "IoTConnectCommon.h"
 #include "IoTConnectEntry.h"
 
+typedef enum {
+    IOT_CONNECT_AUTH_SYMMETRIC_KEY = 0,
+    IOT_CONNECT_AUTH_CLIENT_SIDE_CERT = 1
+}IoTConnectAuthType;
 
 class IoTConnectDevice {
 private:
@@ -19,6 +23,9 @@ private:
     const char* cert_pem;
     const char* private_key_pem;
 
+    const char* topic_pub;
+    const char* topic_sub;
+
 
 public:
     IoTConnectDevice(const char* _device_id, const char* _device_name, const char* _pwd, const IoTConnectEntry* _entry);
@@ -33,11 +40,18 @@ public:
 
     const IoTConnectEntry* get_entry() const;
 
+    const char* get_mqtt_topic_pub() const;
+    const char* get_mqtt_topic_sub() const;
+
+    IoTConnectAuthType get_auth_type() const;
+
     ~IoTConnectDevice();
 
 private:
     char* init_client_id(const char* _device_id, const IoTConnectEntry* _entry);
     char* init_user_name(const char* _client_id, const IoTConnectEntry* _entry);
+    char* init_mqtt_topic_pub(const char* _client_id);
+    char* init_mqtt_topic_sub(const char* _client_id);
 
 };
 

@@ -12,10 +12,14 @@ IoTConnectDevice::IoTConnectDevice(const char* _device_id, const char* _device_n
     private_key_pem(NULL),
     client_id(NULL),
     user_name(NULL),
-    entry(_entry)
+    entry(_entry),
+    topic_pub(NULL),
+    topic_sub(NULL)
 {
     client_id = init_client_id(_device_id, _entry);
     user_name = init_user_name(client_id, _entry);
+    topic_pub = init_mqtt_topic_pub(client_id);
+    topic_sub = init_mqtt_topic_sub(client_id);
 }
 
 IoTConnectDevice::~IoTConnectDevice()
@@ -26,6 +30,14 @@ IoTConnectDevice::~IoTConnectDevice()
 
     if (user_name) {
         delete[] user_name;
+    }
+
+    if (topic_pub) {
+        delete[] topic_pub;
+    }
+
+    if (topic_sub) {
+        delete[] topic_sub;
     }
 }
 
@@ -96,3 +108,39 @@ const IoTConnectEntry* IoTConnectDevice::get_entry() const
     return entry;
 }
 
+char* IoTConnectDevice::init_mqtt_topic_pub(const char* _client_id)
+{
+    size_t buf_size = strlen(_client_id) + 30;
+
+    char* _topic_pub = new char[buf_size];
+    memset(_topic_pub, 0, buf_size);
+    sprintf(_topic_pub, "devices/%s/messages/events/", _client_id);
+
+    return _topic_pub;
+}
+
+char* IoTConnectDevice::init_mqtt_topic_sub(const char* _client_id)
+{
+    size_t buf_size = strlen(_client_id) + 36;
+
+    char* _topic_sub = new char[buf_size];
+    memset(_topic_sub, 0, buf_size);
+    sprintf(_topic_sub, "devices/%s/messages/devicebound/#", _client_id);
+
+    return _topic_sub;
+}
+
+const char* IoTConnectDevice::get_mqtt_topic_pub() const
+{
+    return topic_pub;
+}
+
+const char* IoTConnectDevice::get_mqtt_topic_sub() const
+{
+    return topic_sub;
+}
+
+IoTConnectAuthType IoTConnectDevice::get_auth_type() const
+{
+    return (cert_pem ? IOT_CONNECT_AUTH_CLIENT_SIDE_CERT : IOT_CONNECT_AUTH_SYMMETRIC_KEY);
+}
