@@ -1,0 +1,17 @@
+{
+    "name": "iot-connect",
+    "config": {
+        "cpid": {
+            "help": "COMPANY PROFILE ID. Check it from iotconnect.io->Settings->Company Profile->CPID",
+            "value": null
+        },
+        "mqtt-server-host-name": {
+            "help": "MQTT Server Host Name. Check it from iotconnect.io->Device->Device Page->Connection Info",
+            "value": "poc-iotconnect-iothub-eu.azure-devices.net"
+        },
+        "mqtt-server-port": {
+            "help": "MQTT Server Host Name. Check it from iotconnect.io->Device->Device Page->Connection Info",
+            "value": 8883
+        }
+    }
+}
