@@ -1,17 +1,21 @@
 {
     "name": "iot-connect",
     "config": {
-        "cpid": {
-            "help": "COMPANY PROFILE ID. Check it from iotconnect.io->Settings->Company Profile->CPID",
-            "value": null
+        "mqtt-pub-buffer-max": {
+            "help": "There is a mqtt publish buffer, This specify the max msg number to buffer",
+            "value": 5
         },
-        "mqtt-server-host-name": {
-            "help": "MQTT Server Host Name. Check it from iotconnect.io->Device->Device Page->Connection Info",
-            "value": "poc-iotconnect-iothub-eu.azure-devices.net"
+        "mqtt-sub-buffer-max": {
+            "help": "There is a mqtt subscribe buffer, This specify the max msg number to buffer",
+            "value": 5
         },
-        "mqtt-server-port": {
-            "help": "MQTT Server Host Name. Check it from iotconnect.io->Device->Device Page->Connection Info",
-            "value": 8883
+        "mqtt-client-instance-max": {
+            "help": "The max IoTConnectClient instances to be created",
+            "value": 2
+        },
+        "mqtt-client-thread-stack-size": {
+            "help": "The IoTConnectClient instance thread stack size",
+            "value": "OS_STACK_SIZE"
         }
     }
 }
