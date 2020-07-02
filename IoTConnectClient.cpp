@@ -1,11 +1,12 @@
 #include "mbed_trace.h"
 #include "IoTConnectClient.h"
 #include "AzureRootCert.h"
+#include "MQTTPacket.h"
 
 
 #define TRACE_GROUP  "IoTConnectClient"
 #define CLIENT_SUB_BINDS_SIZE MBED_CONF_IOT_CONNECT_MQTT_CLIENT_INSTANCE_MAX
-
+#define CLIENT_TOPIC_NAME_LEN 100
 
 typedef struct {
     const char* topic;
@@ -29,24 +30,69 @@ static int client_sub_topic_bind(IoTConnectClient* _client, const char* _topic)
     return IOT_CONNECT_ERROR_CLIENT_OUT_OF_INSTANCE;
 }
 
+static void mqtt_string_clone(MQTTString& a, char* bptr, int blen)
+{
+	int alen = 0;
+	char* aptr;
+
+	if (a.cstring)
+	{
+		aptr = a.cstring;
+		alen = strlen(a.cstring);
+	}
+	else
+	{
+		aptr = a.lenstring.data;
+		alen = a.lenstring.len;
+	}
+	snprintf(bptr, alen < blen ? alen : blen, "%s", (char*)aptr);
+}
+
+static bool mqtt_is_topic_matched(const char* topicFilter, MQTTString& topicName)
+{
+    const char* curf = topicFilter;
+    char* curn = topicName.lenstring.data;
+    char* curn_end = curn + topicName.lenstring.len;
+
+    while (*curf && curn < curn_end)
+    {
+        if (*curn == '/' && *curf != '/')
+            break;
+        if (*curf != '+' && *curf != '#' && *curf != *curn)
+            break;
+        if (*curf == '+')
+        {   // skip until we meet the next separator, or end of string
+            char* nextpos = curn + 1;
+            while (nextpos < curn_end && *nextpos != '/')
+                nextpos = ++curn + 1;
+        }
+        else if (*curf == '#')
+            curn = curn_end - 1;    // skip until end of string
+        curf++;
+        curn++;
+    };
+
+    return (curn == curn_end) && (*curf == '\0');
+}
+
 static void client_sub_handle_internal(MQTT::MessageData& _data)
 {
-    // int i;
     MQTT::Message &_msg = _data.message;
-    const char* topic = _data.topicName.cstring;
+    static char topic[CLIENT_TOPIC_NAME_LEN];
     IoTConnectClient* client = NULL;
     int i;
 
-    tr_info("Topic[%s] - subscribe new message#%d arrived", topic, _msg.id);
-    #if MBED_TRACE_MAX_LEVEL >= TRACE_LEVEL_DEBUG
-    tr_array((uint8_t*)_msg.payload, _msg.payloadlen);
-    #endif
+    mqtt_string_clone(_data.topicName, topic, CLIENT_TOPIC_NAME_LEN);
+
+    tr_info("Topic[%s] - subscribe new message#%d with %d bytes payload arrived", topic, _msg.id, _msg.payloadlen);
 
     for (i = 0; i < CLIENT_SUB_BINDS_SIZE; i++) {
         if (binds[i].topic == NULL) {
             break;
         }
-        if (strcmp(binds[i].topic, topic) == 0) {
+
+        if (mqtt_is_topic_matched(binds[i].topic, _data.topicName)) {
+            tr_debug("Found bind IoTConnectClient object by topic name");
             client = binds[i].client;
             break;
         }
@@ -54,22 +100,23 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
 
     if (client) {
         if (client->subs.full()) {
-            tr_error("Topic[%s] - subscribe message buffer overflow", topic);
+            tr_error("Subscribe message buffer overflow");
             return;
         }
 
         char* buf;
-        size_t buf_len = _msg.payloadlen;
+        size_t buf_len = _msg.payloadlen + 1;
         buf = (char*)malloc(buf_len);
         if (!buf) {
-            tr_error("Out of memory when buffer Topic[%s] subscribe message#%d", topic, _msg.id);
+            tr_error("Out of memory when buffer message");
             return;
         }
         memcpy(buf, _msg.payload, _msg.payloadlen);
+        buf[_msg.payloadlen] = '\0';
 
         MQTT::Message* msg_new = (MQTT::Message*)malloc(sizeof(MQTT::Message));
         if (!msg_new) {
-            tr_error("Out of memory when buffer Topic[%s] subscribe message#%d", topic, _msg.id);
+            tr_error("Out of memory when buffer message");
             return;
         }
         memset(msg_new, 0, sizeof(MQTT::Message));
@@ -78,15 +125,15 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
         msg_new->dup = _msg.dup;
         msg_new->id = _msg.id;
         msg_new->payload = buf;
-        msg_new->payloadlen = buf_len;
+        msg_new->payloadlen = _msg.payloadlen;
 
         client->subs.push(msg_new);
-        tr_debug("Topic[%s] - subscribe new message#%d have been buffered", topic, _msg.id);
+        tr_debug("Message have been buffered");
         if (client->on_received) {
-            tr_debug("Topic[%s] - subscribe new message#%d: try to call on_received callback", topic, _msg.id);
+            tr_debug("Try to call on_received callback", topic, _msg.id);
             client->on_received(msg_new);
         } else {
-            tr_warn("Topic[%s] doesn't have a on_received handler function", topic, _msg.id);
+            tr_warn("Doesn't have a on_received handler");
         }
     }
 }
@@ -307,7 +354,8 @@ void IoTConnectClient::thread_main_loop()
         }
 
         if (mqtt_client->yield(100) != MQTT::SUCCESS) {
-            // error occurs when yield, call a callback and then sleep or terminal thread?
+            // error occurs when yield, coninue to check is the connection is lost.
+            continue;
         }
 
         if (!pubs.empty()) {
