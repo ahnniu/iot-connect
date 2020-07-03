@@ -66,7 +66,9 @@ IoTConnectProperty::IoTConnectProperty() :
 
 IoTConnectProperty::~IoTConnectProperty()
 {
-
+    if (jstr) {
+        free(jstr);
+    }
 }
 
 int IoTConnectProperty::add(IoTConnectStringProperty* _prop, Callback<void(void*)> _on_change)
