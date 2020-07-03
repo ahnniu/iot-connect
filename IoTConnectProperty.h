@@ -50,6 +50,7 @@ public:
     int to_json();
     const char* get_json();
     int update(const char* _json);
+    int update(const char* _json, size_t _len);
 
 private:
 

@@ -7,11 +7,6 @@
 #include <MQTTClientMbedOs.h>
 #include "IoTConnectError.h"
 
-// typedef struct {
-//     MQTT::Message msg;
-//     char* buf;
-// }IoTConnectMessage;
-
 #define MQTT_PUB_BUFFER_MSG_NUMBER MBED_CONF_IOT_CONNECT_MQTT_PUB_BUFFER_MAX
 #define MQTT_SUB_BUFFER_MSG_NUMBER MBED_CONF_IOT_CONNECT_MQTT_SUB_BUFFER_MAX
 #define MQTT_CLIENT_THREAD_STACK_SIZE MBED_CONF_IOT_CONNECT_MQTT_CLIENT_THREAD_STACK_SIZE
@@ -22,7 +17,6 @@ class IoTConnectClient
 
 public:
     CircularBuffer<MQTT::Message*, MQTT_PUB_BUFFER_MSG_NUMBER> pubs;
-    CircularBuffer<MQTT::Message*, MQTT_SUB_BUFFER_MSG_NUMBER> subs;
 
     Callback<void(MQTT::Message*)> on_received;
 
@@ -59,10 +53,6 @@ private:
     void thread_main_loop();
 
 };
-
-
-// This is a template class, it is usually in a single .h file
-// Blow is the implemention
 
 
 #endif

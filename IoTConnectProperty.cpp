@@ -271,18 +271,22 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 }
 
 
-int IoTConnectProperty::update(const char* _json)
+int IoTConnectProperty::update(const char* _json, size_t _len)
 {
     int r;
     int i, j;
     const char* js = _json;
+
+    if (_json == NULL) {
+        return IOT_CONNECT_ERROR_INVAL;
+    }
 
     jsmn_parser parser;
     jsmntok_t t[IOT_CONNECT_PROPERTYS_MAX];
 
     jsmn_init(&parser);
 
-    r = jsmn_parse(&parser, js, strlen(js), t, sizeof(t) / sizeof(t[0]));
+    r = jsmn_parse(&parser, js, _len, t, sizeof(t) / sizeof(t[0]));
 
     if (r < 0) {
         // Failed to parse JSON
@@ -331,4 +335,17 @@ int IoTConnectProperty::update(const char* _json)
     }
 
     return 0;
+}
+
+int IoTConnectProperty::update(const char* _json)
+{
+    size_t len;
+
+    if (_json == NULL) {
+        return IOT_CONNECT_ERROR_INVAL;
+    }
+
+    len = strlen(_json);
+
+    return update(_json, len);
 }

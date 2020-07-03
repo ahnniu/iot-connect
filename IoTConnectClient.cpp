@@ -99,11 +99,6 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
     }
 
     if (client) {
-        if (client->subs.full()) {
-            tr_error("Subscribe message buffer overflow");
-            return;
-        }
-
         char* buf;
         size_t buf_len = _msg.payloadlen + 1;
         buf = (char*)malloc(buf_len);
@@ -127,8 +122,6 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
         msg_new->payload = buf;
         msg_new->payloadlen = _msg.payloadlen;
 
-        client->subs.push(msg_new);
-        tr_debug("Message have been buffered");
         if (client->on_received) {
             tr_info("Client has a customized on_received callback");
             tr_debug("NOTE: This won't update device properties because client has handler this message");
@@ -136,6 +129,14 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
         } else {
             tr_debug("Update device properties according to the message");
             client->update_props_on_recieved(msg_new);
+        }
+
+        // Free buffer
+        if (msg_new) {
+            free(msg_new);
+        }
+        if (buf) {
+            free(buf);
         }
     }
 }
@@ -168,16 +169,6 @@ IoTConnectClient::~IoTConnectClient() {
 
     while(!pubs.empty()) {
         pubs.pop(msg);
-        if (msg) {
-            if (msg->payload) {
-                free(msg->payload);
-            }
-            free(msg);
-        }
-    }
-
-    while(!subs.empty()) {
-        subs.pop(msg);
         if (msg) {
             if (msg->payload) {
                 free(msg->payload);
