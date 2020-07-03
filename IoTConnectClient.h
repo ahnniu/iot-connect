@@ -40,6 +40,8 @@ public:
 
     int start_main_loop();
 
+    void update_props_on_recieved(MQTT::Message* _msg);
+
 private:
     IoTConnectAuthType auth_type;
     const IoTConnectEntry* entry;
@@ -55,7 +57,7 @@ private:
 private:
 
     void thread_main_loop();
-    // void sub_handle_internal(MQTT::MessageData& _data);
+
 };
 
 

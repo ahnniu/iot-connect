@@ -3,13 +3,14 @@
 
 #include "IoTConnectCommon.h"
 #include "IoTConnectEntry.h"
+#include "IoTConnectProperty.h"
 
 typedef enum {
     IOT_CONNECT_AUTH_SYMMETRIC_KEY = 0,
     IOT_CONNECT_AUTH_CLIENT_SIDE_CERT = 1
 }IoTConnectAuthType;
 
-class IoTConnectDevice {
+class IoTConnectDevice : public IoTConnectProperty {
 private:
     const IoTConnectEntry* entry;
 

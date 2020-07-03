@@ -130,10 +130,12 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
         client->subs.push(msg_new);
         tr_debug("Message have been buffered");
         if (client->on_received) {
-            tr_debug("Try to call on_received callback", topic, _msg.id);
+            tr_info("Client has a customized on_received callback");
+            tr_debug("NOTE: This won't update device properties because client has handler this message");
             client->on_received(msg_new);
         } else {
-            tr_warn("Doesn't have a on_received handler");
+            tr_debug("Update device properties according to the message");
+            client->update_props_on_recieved(msg_new);
         }
     }
 }
@@ -384,4 +386,10 @@ void IoTConnectClient::thread_main_loop()
         }
 
     }
+}
+
+void IoTConnectClient::update_props_on_recieved(MQTT::Message* _msg)
+{
+    const char* js = (const char*)_msg->payload;
+    device->update(js);
 }
