@@ -311,7 +311,10 @@ int IoTConnectProperty::to_json()
         sprintf(p, "\"%s\":", tokens[i].key);
         p += strlen(tokens[i].key) + 3;
         switch (tokens[i].type) {
-            case IOT_CONNECT_PROPERTY_TYPE_STRING: {
+            case IOT_CONNECT_PROPERTY_TYPE_STRING:
+            case IOT_CONNECT_PROPERTY_TYPE_INT:
+            case IOT_CONNECT_PROPERTY_TYPE_BOOL:
+            {
                 const char * str_val = ((IoTConnectStringProperty*)tokens[i].obj)->get_value();
                 sprintf(p, "\"%s\"", str_val);
                 p += strlen(str_val) + 2;
@@ -433,6 +436,11 @@ int IoTConnectProperty::update(const char* _json, size_t _len)
                     case IOT_CONNECT_PROPERTY_TYPE_INT:
                     case IOT_CONNECT_PROPERTY_TYPE_BOOL:
                         ((IoTConnectStringProperty*)tokens[i].obj)->set_value(to_read, read_len);
+                        tr_info("Property[%s] changed", tokens[i].key);
+                        if (tokens[i].on_change) {
+                            tr_info("call on_change() callback");
+                            tokens[i].on_change(tokens[i].obj);
+                        }
                         // value token has been parse
                         i++;
                         break;
