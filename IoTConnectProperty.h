@@ -29,7 +29,7 @@ public:
     IoTConnectProperty();
     ~IoTConnectProperty();
 
-    int add(IoTConnectStringProperty* _prop);
+    int add(IoTConnectStringProperty* _prop, Callback<void(void*)> _on_change = NULL);
     int prop(const char* _key, void** _obj, jsmntype_t* _type = 0);
     void* prop(const char* _key);
 
@@ -45,6 +45,7 @@ private:
         const char* key;
         jsmntype_t type;
         void* obj;
+        Callback<void(void*)> on_change;
     }PropToken;
 
     PropToken tokens[IOT_CONNECT_PROPERTY_KEYS_MAX];

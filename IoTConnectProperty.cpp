@@ -60,6 +60,7 @@ IoTConnectProperty::IoTConnectProperty() :
         tokens[i].key = NULL;
         tokens[i].type = JSMN_UNDEFINED;
         tokens[i].obj = NULL;
+        tokens[i].on_change = NULL;
     }
 }
 
@@ -68,7 +69,7 @@ IoTConnectProperty::~IoTConnectProperty()
 
 }
 
-int IoTConnectProperty::add(IoTConnectStringProperty* _prop)
+int IoTConnectProperty::add(IoTConnectStringProperty* _prop, Callback<void(void*)> _on_change)
 {
     int i;
 
@@ -81,6 +82,10 @@ int IoTConnectProperty::add(IoTConnectStringProperty* _prop)
             tokens[i].key = _prop->get_key();
             tokens[i].type = JSMN_STRING;
             tokens[i].obj = _prop;
+
+            if (_on_change) {
+                tokens[i].on_change = _on_change;
+            }
 
             return 0;
         }
