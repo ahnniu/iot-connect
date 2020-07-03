@@ -16,6 +16,36 @@ IoTConnectStringProperty::IoTConnectStringProperty(const char* _key, const char*
     }
 }
 
+IoTConnectStringProperty::IoTConnectStringProperty(const char* _key, bool _value) :
+    key(_key),
+    buf(NULL)
+{
+    size_t buf_len = 6;
+
+    buf = (char*)malloc(buf_len);
+    memset(buf, 0, buf_len);
+
+    if (_value) {
+        sprintf(buf, "true");
+    } else
+    {
+        sprintf(buf, "false");
+    }
+}
+
+IoTConnectStringProperty::IoTConnectStringProperty(const char* _key, int _value) :
+    key(_key),
+    buf(NULL)
+{
+    // 32bit integer
+    size_t buf_len = 12;
+
+    buf = (char*)malloc(buf_len);
+    memset(buf, 0, buf_len);
+
+    sprintf(buf, "%d", _value);
+}
+
 IoTConnectStringProperty::~IoTConnectStringProperty()
 {
     if (buf) {
@@ -67,6 +97,93 @@ void IoTConnectStringProperty::set_value(const char* _new_value, size_t _len)
 
     buf = new_value_buf;
 
+}
+
+IoTConnectBoolProperty::IoTConnectBoolProperty(const char* _key, bool _value) :
+    IoTConnectStringProperty(_key, _value)
+{
+
+}
+
+IoTConnectBoolProperty::~IoTConnectBoolProperty()
+{
+
+}
+
+void IoTConnectBoolProperty::get_value(bool* pbool_val)
+{
+    const char* val_in_str = NULL;
+
+    if (pbool_val == NULL) {
+        return;
+    }
+
+    IoTConnectStringProperty::get_value(&val_in_str);
+    if (val_in_str && strcmp(val_in_str, "true") == 0) {
+        *pbool_val = true;
+    } else {
+        *pbool_val = false;
+    }
+}
+
+bool IoTConnectBoolProperty::get_value()
+{
+    bool val = false;
+    get_value(&val);
+
+    return val;
+}
+
+void IoTConnectBoolProperty::set_value(bool _new_value)
+{
+    char buf[6];
+    memset(buf, 0, 6);
+
+    if (_new_value) {
+        sprintf(buf, "true");
+    } else {
+        sprintf(buf, "false");
+    }
+    IoTConnectStringProperty::set_value(buf);
+}
+
+
+IoTConnectIntProperty::IoTConnectIntProperty(const char* _key, int _value) :
+    IoTConnectStringProperty(_key, _value)
+{
+
+}
+
+IoTConnectIntProperty::~IoTConnectIntProperty()
+{
+
+}
+
+void IoTConnectIntProperty::get_value(int* pint_val)
+{
+    const char* val_in_str = NULL;
+
+    if (pint_val == NULL) {
+        return;
+    }
+
+    IoTConnectStringProperty::get_value(&val_in_str);
+    *pint_val = strtoimax(val_in_str, NULL, 10);
+}
+
+int IoTConnectIntProperty::get_value()
+{
+    int val = 0;
+    get_value(&val);
+    return val;
+}
+
+void IoTConnectIntProperty::set_value(int _new_value)
+{
+    char buf[12];
+    memset(buf, 0, 12);
+    sprintf(buf, "%d", _new_value);
+    IoTConnectStringProperty::set_value(buf);
 }
 
 IoTConnectProperty::IoTConnectProperty() :

@@ -21,6 +21,8 @@ class IoTConnectStringProperty {
 
 public:
     IoTConnectStringProperty(const char* _key, const char* _value);
+    IoTConnectStringProperty(const char* _key, bool _value);
+    IoTConnectStringProperty(const char* _key, int _value);
     ~IoTConnectStringProperty();
 
     const char* get_key() const;
@@ -36,6 +38,27 @@ private:
     char* buf;
 };
 
+class IoTConnectBoolProperty : public IoTConnectStringProperty {
+
+public:
+    IoTConnectBoolProperty(const char* _key, bool _value);
+    ~IoTConnectBoolProperty();
+
+    void get_value(bool* pbool_val);
+    bool get_value();
+    void set_value(bool _new_value);
+};
+
+class IoTConnectIntProperty : public IoTConnectStringProperty {
+
+public:
+    IoTConnectIntProperty(const char* _key, int _value);
+    ~IoTConnectIntProperty();
+
+    void get_value(int* pint_val);
+    int get_value();
+    void set_value(int _new_value);
+};
 
 class IoTConnectProperty
 {
