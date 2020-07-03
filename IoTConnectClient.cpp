@@ -149,6 +149,7 @@ IoTConnectClient::IoTConnectClient(NetworkInterface *_network, IoTConnectDevice 
     socket(new TLSSocket),
     mqtt_client(NULL),
     on_received(NULL),
+    on_connection_lost(NULL),
     thread(osPriorityNormal, MQTT_CLIENT_THREAD_STACK_SIZE)
 {
     if (_device) {
@@ -344,6 +345,10 @@ void IoTConnectClient::thread_main_loop()
     while (1) {
         if (!is_connected()) {
             // Disconneted, call a callback then sleep or terminal thread?
+            tr_error("Connection lost");
+            if (on_connection_lost) {
+                on_connection_lost();
+            }
         }
 
         if (mqtt_client->yield(100) != MQTT::SUCCESS) {
@@ -383,4 +388,11 @@ void IoTConnectClient::update_props_on_recieved(MQTT::Message* _msg)
 {
     const char* js = (const char*)_msg->payload;
     device->update(js);
+}
+
+void IoTConnectClient::set_event_handler(Callback<void()> _on_connection_lost)
+{
+    if (_on_connection_lost) {
+        on_connection_lost = _on_connection_lost;
+    }
 }

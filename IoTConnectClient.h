@@ -27,7 +27,7 @@ public:
     int connect();
     int disconnect();
     bool is_connected();
-    // void set_event_handler(Callback<void()> _on_connection_lost);
+    void set_event_handler(Callback<void()> _on_connection_lost);
 
     int subscribe(MQTT::QoS qos, Callback<void(MQTT::Message*)> _on_received);
     int pub(MQTT::Message* _msg);
@@ -44,9 +44,9 @@ private:
     NetworkInterface* network;
     MQTTClient* mqtt_client;
 
-
     Thread thread;
 
+    Callback<void()> on_connection_lost;
 
 private:
 
