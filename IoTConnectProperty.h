@@ -4,8 +4,18 @@
 #include "jsmn.h"
 #include "IoTConnectError.h"
 
-#define IOT_CONNECT_PROPERTY_KEYS_MAX 32
+#define IOT_CONNECT_PROPERTYS_MAX 10
 
+typedef enum {
+    IOT_CONNECT_PROPERTY_TYPE_UNDEFINED = JSMN_UNDEFINED,
+    IOT_CONNECT_PROPERTY_TYPE_OBJECT = JSMN_OBJECT,
+    IOT_CONNECT_PROPERTY_TYPE_ARRAY = JSMN_ARRAY,
+    IOT_CONNECT_PROPERTY_TYPE_STRING = JSMN_STRING,
+    IOT_CONNECT_PROPERTY_TYPE_PRIMITIVE = JSMN_PRIMITIVE,
+    IOT_CONNECT_PROPERTY_TYPE_INT = JSMN_PRIMITIVE + 1,
+    IOT_CONNECT_PROPERTY_TYPE_BOOL = JSMN_PRIMITIVE + 2,
+    IOT_CONNECT_PROPERTY_TYPE_NULL = JSMN_PRIMITIVE + 3
+} IoTConnectPropertyType;
 
 class IoTConnectStringProperty {
 
@@ -15,7 +25,11 @@ public:
 
     const char* get_key() const;
     const char* get_value();
+
+    void get_value(const char** pval_in_str);
+
     void set_value(const char* _new_value);
+    void set_value(const char* _new_value, size_t _len);
 
 private:
     const char* key;
@@ -30,10 +44,12 @@ public:
     ~IoTConnectProperty();
 
     int add(IoTConnectStringProperty* _prop, Callback<void(void*)> _on_change = NULL);
-    int prop(const char* _key, void** _obj, jsmntype_t* _type = 0);
+    int prop(const char* _key, void** _obj, IoTConnectPropertyType* _type = 0);
     void* prop(const char* _key);
 
     int to_json();
+    const char* get_json();
+    int update(const char* _json);
 
 private:
 
@@ -43,12 +59,12 @@ private:
 
     typedef struct {
         const char* key;
-        jsmntype_t type;
+        IoTConnectPropertyType type;
         void* obj;
         Callback<void(void*)> on_change;
     }PropToken;
 
-    PropToken tokens[IOT_CONNECT_PROPERTY_KEYS_MAX];
+    PropToken tokens[IOT_CONNECT_PROPERTYS_MAX];
     char* jstr;
 };
 

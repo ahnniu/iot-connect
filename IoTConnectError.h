@@ -16,6 +16,8 @@ typedef enum {
 
     IOT_CONNECT_ERROR_PROPERTY_FULL          = -1201,
     IOT_CONNECT_ERROR_PROPERTY_NOT_FOUND     = -1202,
+    IOT_CONNECT_ERROR_PROPERTY_JSON_FORMAT   = -1203,
+    IOT_CONNECT_ERROR_PROPERTY_JSON_PARSE    = -1204,
 
 
     IOT_CONNECT_ERROR_NS_WOULD_BLOCK         = -3001,     /*!< no data is not available but call is non-blocking */
