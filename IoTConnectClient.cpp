@@ -85,6 +85,8 @@ static void client_sub_handle_internal(MQTT::MessageData& _data)
     mqtt_string_clone(_data.topicName, topic, CLIENT_TOPIC_NAME_LEN);
 
     tr_info("Topic[%s] - subscribe new message#%d with %d bytes payload arrived", topic, _msg.id, _msg.payloadlen);
+    tr_debug("Dump message payload");
+    tr_debug("%.*s", _msg.payloadlen, _msg.payload);
 
     for (i = 0; i < CLIENT_SUB_BINDS_SIZE; i++) {
         if (binds[i].topic == NULL) {

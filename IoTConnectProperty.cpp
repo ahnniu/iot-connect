@@ -87,8 +87,8 @@ void IoTConnectStringProperty::set_value(const char* _new_value, size_t _len)
 
     new_value_len = _len;
     new_value_buf = (char*)malloc(new_value_len + 1);
-    sprintf(new_value_buf, " %.*s", new_value_len, _new_value);
-    new_value_buf[new_value_len] = '\0';
+    memset(new_value_buf, 0, new_value_len + 1);
+    sprintf(new_value_buf, "%.*s", new_value_len, _new_value);
 
     // free old value buf
     if (buf) {
@@ -284,7 +284,6 @@ int IoTConnectProperty::to_json(const char** _ppjson)
     }
 
     len = calc_json_str_len();
-    MBED_ASSERT(len > 0);
 
     // properties may change, the old json string would be timeout
     // free the old json string and generate a new buf
@@ -387,15 +386,15 @@ int IoTConnectProperty::calc_json_str_len()
         len += 2;
     }
 
-    return 0;
+    return len;
 }
 
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-  if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
-      strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-    return 0;
-  }
-  return -1;
+    if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
+        strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+        return 0;
+    }
+    return -1;
 }
 
 
@@ -408,6 +407,9 @@ int IoTConnectProperty::update(const char* _json, size_t _len)
     if (_json == NULL) {
         return IOT_CONNECT_ERROR_INVAL;
     }
+
+    tr_debug("Dump devive properties json before update");
+    tr_debug("%s", jstr);
 
     jsmn_parser parser;
     jsmntok_t t[IOT_CONNECT_PROPERTYS_MAX * 2];
@@ -428,36 +430,38 @@ int IoTConnectProperty::update(const char* _json, size_t _len)
     for (i = 1; i < r; i++) {
         bool found_prop = false;
         for (j = 0; j < IOT_CONNECT_PROPERTYS_MAX; j++) {
-            if (tokens[i].key == NULL) {
+            if (tokens[j].key == NULL) {
                 break;
             }
-
-            if (jsoneq(js, &t[i], tokens[i].key) == 0) {
+            if (jsoneq(js, &t[i], tokens[j].key) == 0) {
 
                 jsmntok_t* t_val = &t[i + 1];
                 const char* to_read = js + t_val->start;
                 int read_len = t_val->end - t_val->start;
 
-                switch (tokens[i].type)
+                switch (tokens[j].type)
                 {
                     case IOT_CONNECT_PROPERTY_TYPE_STRING:
                     case IOT_CONNECT_PROPERTY_TYPE_INT:
                     case IOT_CONNECT_PROPERTY_TYPE_BOOL:
-                        ((IoTConnectStringProperty*)tokens[i].obj)->set_value(to_read, read_len);
-                        tr_info("Property[%s] changed", tokens[i].key);
-                        if (tokens[i].on_change) {
-                            tr_info("call on_change() callback");
-                            tokens[i].on_change(tokens[i].obj);
+                        ((IoTConnectStringProperty*)tokens[j].obj)->set_value(to_read, read_len);
+                        tr_info("Property[%s] changed", tokens[j].key);
+                        tr_debug("Note: It %s have an on_change() callback", tokens[j].on_change ? "does" : "doesn't");
+                        if (tokens[j].on_change) {
+                            tr_debug("call on_change() callback");
+                            tokens[j].on_change(tokens[j].obj);
                         }
                         // value token has been parse
                         i++;
                         break;
                     // TODO: To support Array, Object type
                     default:
-                        tr_err("Property[%s] has an unsupport value type: %d", tokens[i].key, tokens[i].type);
+                        tr_err("Property[%s] has an unsupport value type: %d", tokens[j].key, tokens[i].type);
                         i++;
                         break;
                 }
+
+                found_prop = true;
                 break;
             }
         }
@@ -466,6 +470,9 @@ int IoTConnectProperty::update(const char* _json, size_t _len)
         }
 
     }
+
+    tr_debug("Dump devive properties json after update");
+    tr_debug("%s", get_json());
 
     return 0;
 }
