@@ -150,7 +150,8 @@ IoTConnectClient::IoTConnectClient(NetworkInterface *_network, IoTConnectDevice 
     mqtt_client(NULL),
     on_received(NULL),
     on_connection_lost(NULL),
-    thread(osPriorityNormal, MQTT_CLIENT_THREAD_STACK_SIZE)
+    thread(osPriorityNormal, MQTT_CLIENT_THREAD_STACK_SIZE),
+    msg_id_pub_props(0)
 {
     if (_device) {
         entry = _device->get_entry();
@@ -395,4 +396,28 @@ void IoTConnectClient::set_event_handler(Callback<void()> _on_connection_lost)
     if (_on_connection_lost) {
         on_connection_lost = _on_connection_lost;
     }
+}
+
+int IoTConnectClient::pub_props(MQTT::QoS _qos)
+{
+    int r;
+    const char* json = NULL;
+    MQTT::Message pub_msg;
+
+    r = device->to_json(&json);
+
+    if (r != 0) {
+        return r;
+    }
+
+    pub_msg.qos = _qos;
+    pub_msg.retained = false;
+    pub_msg.dup = false;
+    pub_msg.id = msg_id_pub_props++;
+    pub_msg.payload = (void*)json;
+    pub_msg.payloadlen = strlen(json);
+
+    r = pub(&pub_msg);
+
+    return r;
 }

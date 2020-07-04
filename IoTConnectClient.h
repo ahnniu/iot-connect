@@ -35,6 +35,7 @@ public:
     int start_main_loop();
 
     void update_props_on_recieved(MQTT::Message* _msg);
+    int pub_props(MQTT::QoS _qos = MQTT::QOS0);
 
 private:
     IoTConnectAuthType auth_type;
@@ -47,6 +48,8 @@ private:
     Thread thread;
 
     Callback<void()> on_connection_lost;
+
+    int msg_id_pub_props;
 
 private:
 

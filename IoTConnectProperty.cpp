@@ -273,12 +273,17 @@ void* IoTConnectProperty::prop(const char* _key)
 }
 
 // Note: String should have a buf to store the real str
-int IoTConnectProperty::to_json()
+int IoTConnectProperty::to_json(const char** _ppjson)
 {
     int i;
-    int len = calc_json_str_len();
+    int len;
     char *p;
 
+    if (_ppjson == NULL) {
+        return IOT_CONNECT_ERROR_INVAL;
+    }
+
+    len = calc_json_str_len();
     MBED_ASSERT(len > 0);
 
     // properties may change, the old json string would be timeout
@@ -330,18 +335,21 @@ int IoTConnectProperty::to_json()
     *--p = '}';
     *++p = '\0';
 
+    *_ppjson = jstr;
+
     return 0;
 }
 
 const char* IoTConnectProperty::get_json()
 {
-    int r = to_json();
+    const char* js;
+    int r = to_json(&js);
 
     if (r != 0) {
-        return jstr;
+        return NULL;
     }
 
-    return NULL;
+    return js;
 }
 
 int IoTConnectProperty::calc_json_str_len()
@@ -402,7 +410,7 @@ int IoTConnectProperty::update(const char* _json, size_t _len)
     }
 
     jsmn_parser parser;
-    jsmntok_t t[IOT_CONNECT_PROPERTYS_MAX];
+    jsmntok_t t[IOT_CONNECT_PROPERTYS_MAX * 2];
 
     jsmn_init(&parser);
 

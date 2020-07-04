@@ -70,7 +70,7 @@ public:
     int prop(const char* _key, void** _obj, IoTConnectPropertyType* _type = 0);
     void* prop(const char* _key);
 
-    int to_json();
+    int to_json(const char** _ppjson);
     const char* get_json();
     int update(const char* _json);
     int update(const char* _json, size_t _len);
