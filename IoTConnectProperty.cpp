@@ -319,7 +319,8 @@ int IoTConnectProperty::to_json(const char** _ppjson)
             case IOT_CONNECT_PROPERTY_TYPE_INT:
             case IOT_CONNECT_PROPERTY_TYPE_BOOL:
             {
-                const char * str_val = ((IoTConnectStringProperty*)tokens[i].obj)->get_value();
+                const char * str_val = NULL;
+                ((IoTConnectStringProperty*)tokens[i].obj)->get_value(&str_val);
                 sprintf(p, "\"%s\"", str_val);
                 p += strlen(str_val) + 2;
                 break;
@@ -364,8 +365,12 @@ int IoTConnectProperty::calc_json_str_len()
         len += strlen(tokens[i].key) + 3;   // "key":
         switch (tokens[i].type)
         {
-            case IOT_CONNECT_PROPERTY_TYPE_STRING: {
-                const char* str_val = ((IoTConnectStringProperty*)tokens[i].obj)->get_value();
+            case IOT_CONNECT_PROPERTY_TYPE_STRING:
+            case IOT_CONNECT_PROPERTY_TYPE_INT:
+            case IOT_CONNECT_PROPERTY_TYPE_BOOL:
+            {
+                const char * str_val = NULL;
+                ((IoTConnectStringProperty*)tokens[i].obj)->get_value(&str_val);
                 len += strlen(str_val) + 2;    // "value"
                 break;
             }
